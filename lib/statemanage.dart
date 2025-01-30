@@ -1,4 +1,5 @@
-import 'package:flutter/cupertino.dart';
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import 'Model/quiz.dart';
@@ -10,6 +11,7 @@ class QuizProvider extends ChangeNotifier {
   int _score = 0;
   bool _isAnswered = false;
   String? _errorMessage;
+  int _questionsAttempted = 0; // New variable to track attempted questions
 
   // Getters
   Quiz? get quiz => _quiz;
@@ -18,6 +20,7 @@ class QuizProvider extends ChangeNotifier {
   bool get isAnswered => _isAnswered;
   String? get errorMessage => _errorMessage;
 
+  int get questionsAttempted => _questionsAttempted; // Getter for attempted questions
 
   bool _isLoading = false;
 
@@ -49,11 +52,16 @@ class QuizProvider extends ChangeNotifier {
     } else {
       Navigator.push(
         navigatorKey.currentContext!,
-        MaterialPageRoute(builder: (_) => ResultScreen()),
+        MaterialPageRoute(builder: (_) => const ResultScreen()),
       );
     }
   }
-
+  void endQuiz() {
+    Navigator.push(
+      navigatorKey.currentContext!,
+      MaterialPageRoute(builder: (_) => const ResultScreen()),
+    );
+  }
 
   int _correctAnswers = 0;
   int _wrongAnswers = 0;
@@ -64,7 +72,7 @@ class QuizProvider extends ChangeNotifier {
   void answerQuestion(int selectedIndex) {
     _isAnswered = true;
     final question = _quiz!.questions[_currentQuestionIndex];
-
+    _questionsAttempted++; // Increment attempted questions count
     if (selectedIndex == question.correctAnswerIndex) {
       _score += 4;
       _correctAnswers++;
@@ -74,7 +82,7 @@ class QuizProvider extends ChangeNotifier {
     }
 
     notifyListeners();
-    Future.delayed(Duration(seconds: 1), nextQuestion);
+    Future.delayed(const Duration(seconds: 1), nextQuestion);
   }
 
   void reset() {
@@ -83,6 +91,43 @@ class QuizProvider extends ChangeNotifier {
     _correctAnswers = 0;
     _wrongAnswers = 0;
     _isAnswered = false;
+    _questionsAttempted = 0; // Reset the attempted questions count
+    _remainingTime = 120;
+    startTimer();
     notifyListeners();
   }
+
+
+  late Timer _timer;
+  int _remainingTime = 120;
+  int get remainingTime => _remainingTime;
+  Timer get timer => _timer;
+
+  void startTimer() {
+    _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
+      if (_remainingTime > 0) {
+          _remainingTime--;
+       notifyListeners();
+      } else {
+        _timer.cancel();
+        endQuiz(); // Auto-submit quiz when timer ends
+        notifyListeners();
+      }
+    });
+  }
+
+  String formatTime(int seconds) {
+    final minutes = seconds ~/ 60;
+    final sec = seconds % 60;
+    return '$minutes:${sec.toString().padLeft(2, '0')}';
+  }
+
+  void skipQuestion() {
+    // _questionsAttempted++; // Increment attempted questions count
+    // _isAnswered = true; // Mark it as answered to prevent multiple taps
+
+    notifyListeners();
+    Future.delayed(const Duration(seconds: 1), nextQuestion);
+  }
+
 }

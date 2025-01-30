@@ -1,4 +1,6 @@
 
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:quizapp/statemanage.dart';
@@ -22,7 +24,7 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Quiz',
+      title: 'Quiz',
       navigatorKey: navigatorKey,
       theme: ThemeData(
         colorScheme: ColorScheme.fromSeed(seedColor: Colors.deepPurple),
@@ -98,7 +100,7 @@ class _StartScreenState extends State<StartScreen> {
                                     'Question Types:', 'Multiple Choice'),
                                 const Divider(),
                                 _buildRuleItem(Icons.timer_outlined,
-                                    'Time Limit:', '15 minutes'),
+                                    'Time Limit:', '2 minutes'),
                               ],
                             ),
                           ),
@@ -236,37 +238,54 @@ class LoadingScreen extends StatelessWidget {
     );
   }
 }
-class QuizScreen extends StatelessWidget {
+class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
+
+  @override
+  QuizScreenState createState() => QuizScreenState();
+}
+
+class QuizScreenState extends State<QuizScreen> {
+
+
+  @override
+  void initState() {
+    super.initState();
+    final provider = Provider.of<QuizProvider>(context, listen: false);
+    provider.startTimer();
+  }
+
+
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<QuizProvider>(context, listen: true);
-
     final theme = Theme.of(context);
 
-    // Handle loading state
     if (provider.isLoading) return const LoadingScreen();
-    // Handle error state
     if (provider.errorMessage != null) return ErrorScreen(message: provider.errorMessage!);
-    // Handle empty quiz state
     if (provider.quiz == null || provider.quiz!.questions.isEmpty) return EmptyQuizScreen();
 
     final question = provider.quiz!.questions[provider.currentQuestionIndex];
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('Question ${provider.currentQuestionIndex + 1} / /${provider.quiz!.questions.length}',
-            style: theme.textTheme.titleMedium),
-        centerTitle: true,
+
+        actions: [
+          Padding(
+            padding: const EdgeInsets.all(15.0),
+            child: Text('Time Left: ${provider.formatTime(provider.remainingTime)}',
+                style: theme.textTheme.titleMedium?.copyWith(color: Colors.red)),
+          ),
+        ],
       ),
+
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Progress Indicator
               QuestionProgressIndicator(
                 currentIndex: provider.currentQuestionIndex,
                 totalQuestions: provider.quiz!.questions.length,
@@ -280,10 +299,8 @@ class QuizScreen extends StatelessWidget {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
-                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      // Question Number
                       Text(
                         'Question ${provider.currentQuestionIndex + 1}',
                         style: theme.textTheme.bodyLarge?.copyWith(
@@ -292,27 +309,18 @@ class QuizScreen extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(height: 24),
-
-                      // Question Text
                       Text(
                         question.description,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           height: 1.9,
                         ),
-                        textAlign: TextAlign.start,
                       ),
-
-
                     ],
                   ),
                 ),
               ),
-              // Question Card
-
               const SizedBox(height: 20),
-
-              // Options List
               Expanded(
                 flex: 2,
                 child: ListView.separated(
@@ -322,7 +330,7 @@ class QuizScreen extends StatelessWidget {
                   separatorBuilder: (_, __) => const SizedBox(height: 16),
                   itemBuilder: (context, index) {
                     final option = question.options[index];
-                    int i=index+1;
+                    int i = index + 1;
                     return OptionButton(
                       text: '$i: ${option.description}',
                       isCorrect: index == question.correctAnswerIndex,
@@ -332,14 +340,30 @@ class QuizScreen extends StatelessWidget {
                   },
                 ),
               ),
+
             ],
           ),
+        ),
+      ),
+      floatingActionButton:         SizedBox(
+        width: 100,
+        child: FloatingActionButton(
+         backgroundColor: Colors.blue,
+          onPressed:  provider.isAnswered ? null : provider.skipQuestion ,
+          child: const Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text("Skip",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w700),),
+              Icon(Icons.skip_next,color: Colors.white,),
+
+            ],
+          ),
+
         ),
       ),
     );
   }
 }
-
 class OptionButton extends StatelessWidget {
   final String text;
   final bool isCorrect;
@@ -530,6 +554,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
+                  const SizedBox(height: 20),
                   _buildTrophyAnimation(percentage),
                   const SizedBox(height: 20),
                   _buildScoreCard(percentage),
@@ -537,6 +562,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
                   _buildStatsContainer(provider, totalQuestions, totalMarks),
                   const SizedBox(height: 30),
                   _buildActionButtons(context, provider),
+
                 ],
               ),
             ),
@@ -573,7 +599,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               : percentage > 40
               ? Icons.celebration
               : Icons.auto_awesome,
-          size: 60,
+          size: 50,
           color: Colors.white,
         ),
       ),
@@ -605,8 +631,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
             ),
             const SizedBox(height: 20),
             SizedBox(
-              width: 150,
-              height: 150,
+              width: 120,
+              height: 120,
               child: CircularProgressIndicator(
                 value: value,
                 strokeWidth: 10,
@@ -645,6 +671,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
           child: Column(
             children: [
               _buildStatRow('Total Questions:', '$totalQuestions'),
+              const Divider(),
+              _buildStatRow('Questions attempted:', '${provider.questionsAttempted}'),
               const Divider(),
               _buildStatRow('Correct Answers:', '${provider.correctAnswers}'),
               const Divider(),
@@ -724,38 +752,35 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
     required Color color,
     required VoidCallback onPressed,
   }) {
-    return MouseRegion(
-      cursor: SystemMouseCursors.click,
-      child: GestureDetector(
-        onTap: onPressed,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 200),
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
-          decoration: BoxDecoration(
-            color: color.withOpacity(0.8),
-            borderRadius: BorderRadius.circular(30),
-            boxShadow: [
-              BoxShadow(
-                color: color.withOpacity(0.3),
-                blurRadius: 10,
-                spreadRadius: 2,
-              )
-            ],
-          ),
-          child: Row(
-            children: [
-              Icon(icon, color: Colors.white),
-              const SizedBox(width: 8),
-              Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 16,
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                ),
+    return GestureDetector(
+      onTap: onPressed,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+        decoration: BoxDecoration(
+          color: color.withOpacity(0.8),
+          borderRadius: BorderRadius.circular(30),
+          boxShadow: [
+            BoxShadow(
+              color: color.withOpacity(0.3),
+              blurRadius: 10,
+              spreadRadius: 2,
+            )
+          ],
+        ),
+        child: Row(
+          children: [
+            Icon(icon, color: Colors.white),
+            const SizedBox(width: 8),
+            Text(
+              label,
+              style: const TextStyle(
+                fontSize: 16,
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );
