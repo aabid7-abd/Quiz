@@ -11,7 +11,13 @@ class QuizProvider extends ChangeNotifier {
   int _score = 0;
   bool _isAnswered = false;
   String? _errorMessage;
-  int _questionsAttempted = 0; // New variable to track attempted questions
+  int _timeLeft = 120;
+  Timer? _timer;
+  final Set<int> _attemptedQuestions = {};
+  final Set<int> _skippedQuestions = {};
+  bool _isLoading = false;
+  int _correctAnswers = 0;
+  int _wrongAnswers = 0;
 
   // Getters
   Quiz? get quiz => _quiz;
@@ -19,13 +25,16 @@ class QuizProvider extends ChangeNotifier {
   int get score => _score;
   bool get isAnswered => _isAnswered;
   String? get errorMessage => _errorMessage;
-
-  int get questionsAttempted => _questionsAttempted; // Getter for attempted questions
-
-  bool _isLoading = false;
-
-
+  int get correctAnswers => _correctAnswers;
+  int get wrongAnswers => _wrongAnswers;
+  int get timeLeft => _timeLeft;
+  int get attemptedQuestionsCount => _attemptedQuestions.length;
+  int get skippedQuestionsCount => _skippedQuestions.length;
   bool get isLoading => _isLoading;
+  Set<int> get skippedQuestions => _skippedQuestions;
+  final Set<int> _answeredQuestions = {}; // Track answered questions
+
+  Set<int> get answeredQuestions => _answeredQuestions;
 
   Future<void> loadQuiz() async {
     _isLoading = true;
@@ -43,7 +52,6 @@ class QuizProvider extends ChangeNotifier {
     }
   }
 
-
   void nextQuestion() {
     if (_currentQuestionIndex < _quiz!.questions.length - 1) {
       _currentQuestionIndex++;
@@ -56,25 +64,17 @@ class QuizProvider extends ChangeNotifier {
       );
     }
   }
-  void endQuiz() {
-    Navigator.push(
-      navigatorKey.currentContext!,
-      MaterialPageRoute(builder: (_) => const ResultScreen()),
-    );
-  }
 
-  int _correctAnswers = 0;
-  int _wrongAnswers = 0;
-
-  int get correctAnswers => _correctAnswers;
-  int get wrongAnswers => _wrongAnswers;
 
   void answerQuestion(int selectedIndex) {
+    _attemptedQuestions.add(_currentQuestionIndex);
+    _answeredQuestions.add(_currentQuestionIndex);
     _isAnswered = true;
     final question = _quiz!.questions[_currentQuestionIndex];
-    _questionsAttempted++; // Increment attempted questions count
+
     if (selectedIndex == question.correctAnswerIndex) {
       _score += 4;
+
       _correctAnswers++;
     } else {
       _score -= 1;
@@ -85,49 +85,53 @@ class QuizProvider extends ChangeNotifier {
     Future.delayed(const Duration(seconds: 1), nextQuestion);
   }
 
+  // Reset all data
   void reset() {
     _currentQuestionIndex = 0;
     _score = 0;
     _correctAnswers = 0;
     _wrongAnswers = 0;
     _isAnswered = false;
-    _questionsAttempted = 0; // Reset the attempted questions count
-    _remainingTime = 120;
-    startTimer();
+    _timeLeft = 120;
+    _attemptedQuestions.clear();
+    _skippedQuestions.clear();
+    stopTimer();
     notifyListeners();
   }
 
-
-  late Timer _timer;
-  int _remainingTime = 120;
-  int get remainingTime => _remainingTime;
-  Timer get timer => _timer;
-
   void startTimer() {
     _timer = Timer.periodic(const Duration(seconds: 1), (timer) {
-      if (_remainingTime > 0) {
-          _remainingTime--;
-       notifyListeners();
-      } else {
-        _timer.cancel();
-        endQuiz(); // Auto-submit quiz when timer ends
+      if (_timeLeft > 0) {
+        _timeLeft--;
         notifyListeners();
+      } else {
+        endQuiz();
       }
     });
   }
 
+  void stopTimer() {
+    _timer?.cancel();
+  }
+
+  void endQuiz() {
+    stopTimer();
+    Navigator.push(
+      navigatorKey.currentContext!,
+      MaterialPageRoute(builder: (_) => const ResultScreen()),
+    );
+  }
+
+  void skipQuestion() {
+    _skippedQuestions.add(_currentQuestionIndex);
+    nextQuestion();
+    notifyListeners();
+
+  }
   String formatTime(int seconds) {
     final minutes = seconds ~/ 60;
     final sec = seconds % 60;
     return '$minutes:${sec.toString().padLeft(2, '0')}';
-  }
-
-  void skipQuestion() {
-    // _questionsAttempted++; // Increment attempted questions count
-    // _isAnswered = true; // Mark it as answered to prevent multiple taps
-
-    notifyListeners();
-    Future.delayed(const Duration(seconds: 1), nextQuestion);
   }
 
 }

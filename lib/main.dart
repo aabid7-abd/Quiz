@@ -242,26 +242,32 @@ class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
 
   @override
-  QuizScreenState createState() => QuizScreenState();
+  State<QuizScreen> createState() => _QuizScreenState();
 }
 
-class QuizScreenState extends State<QuizScreen> {
-
-
+class _QuizScreenState extends State<QuizScreen> {
   @override
   void initState() {
     super.initState();
+    // Start timer when the screen loads
     final provider = Provider.of<QuizProvider>(context, listen: false);
     provider.startTimer();
   }
 
-
+  @override
+  void dispose() {
+    // Stop timer when the screen is disposed
+    final provider = Provider.of<QuizProvider>(context, listen: false);
+    provider.stopTimer();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final provider = Provider.of<QuizProvider>(context, listen: true);
     final theme = Theme.of(context);
 
+    // Handle loading, error, and empty states
     if (provider.isLoading) return const LoadingScreen();
     if (provider.errorMessage != null) return ErrorScreen(message: provider.errorMessage!);
     if (provider.quiz == null || provider.quiz!.questions.isEmpty) return EmptyQuizScreen();
@@ -270,27 +276,51 @@ class QuizScreenState extends State<QuizScreen> {
 
     return Scaffold(
       appBar: AppBar(
-
+        title: Text(
+          'Question ${provider.currentQuestionIndex + 1}/${provider.quiz!.questions.length}',
+          style: theme.textTheme.titleMedium,
+        ),
+        centerTitle: true,
         actions: [
+          // Timer display
           Padding(
-            padding: const EdgeInsets.all(15.0),
-            child: Text('Time Left: ${provider.formatTime(provider.remainingTime)}',
-                style: theme.textTheme.titleMedium?.copyWith(color: Colors.red)),
+            padding: const EdgeInsets.all(8.0),
+            child: Container(
+              decoration: const BoxDecoration(
+                  color: Colors.blue,
+                  borderRadius: BorderRadius.all(Radius.circular(15))
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Text(
+                  provider.formatTime(provider.timeLeft),
+                  style: TextStyle(
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                    color: provider.timeLeft <= 10 ? Colors.red : Colors.white,
+                  ),
+                ),
+              ),
+            ),
           ),
         ],
       ),
-
       body: SafeArea(
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
+              // Progress Indicator
               QuestionProgressIndicator(
                 currentIndex: provider.currentQuestionIndex,
                 totalQuestions: provider.quiz!.questions.length,
+                  skippedQuestions: provider.skippedQuestions,
+                  answeredQuestions: provider.answeredQuestions
               ),
               const SizedBox(height: 32),
+
+              // Question Card
               Card(
                 elevation: 4,
                 shape: RoundedRectangleBorder(
@@ -299,8 +329,10 @@ class QuizScreenState extends State<QuizScreen> {
                 child: Padding(
                   padding: const EdgeInsets.all(24),
                   child: Column(
+                    mainAxisAlignment: MainAxisAlignment.start,
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
+                      // Question Number
                       Text(
                         'Question ${provider.currentQuestionIndex + 1}',
                         style: theme.textTheme.bodyLarge?.copyWith(
@@ -309,18 +341,23 @@ class QuizScreenState extends State<QuizScreen> {
                         ),
                       ),
                       const SizedBox(height: 24),
+
+                      // Question Text
                       Text(
                         question.description,
                         style: theme.textTheme.bodyMedium?.copyWith(
                           fontWeight: FontWeight.w700,
                           height: 1.9,
                         ),
+                        textAlign: TextAlign.start,
                       ),
                     ],
                   ),
                 ),
               ),
               const SizedBox(height: 20),
+
+              // Options List
               Expanded(
                 flex: 2,
                 child: ListView.separated(
@@ -341,29 +378,31 @@ class QuizScreenState extends State<QuizScreen> {
                 ),
               ),
 
+              // Skip Button
+
             ],
           ),
         ),
       ),
-      floatingActionButton:         SizedBox(
-        width: 100,
+      floatingActionButton: SizedBox(
+
+        width: 150,
         child: FloatingActionButton(
-         backgroundColor: Colors.blue,
-          onPressed:  provider.isAnswered ? null : provider.skipQuestion ,
+          backgroundColor: Colors.purple,
+          onPressed: provider.skipQuestion,
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Text("Skip",style: TextStyle(color: Colors.white,fontWeight: FontWeight.w700),),
               Icon(Icons.skip_next,color: Colors.white,),
-
+              Text('Skip Question',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w700),),
             ],
           ),
-
         ),
       ),
     );
   }
 }
+
 class OptionButton extends StatelessWidget {
   final String text;
   final bool isCorrect;
@@ -475,10 +514,14 @@ class EmptyQuizScreen extends StatelessWidget {
 class QuestionProgressIndicator extends StatelessWidget {
   final int currentIndex;
   final int totalQuestions;
+  final Set<int> skippedQuestions; // Track skipped questions
+  final Set<int> answeredQuestions; // Track answered questions
 
   const QuestionProgressIndicator({
     required this.currentIndex,
     required this.totalQuestions,
+    required this.skippedQuestions,
+    required this.answeredQuestions,
     super.key,
   });
 
@@ -487,11 +530,23 @@ class QuestionProgressIndicator extends StatelessWidget {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: List.generate(totalQuestions, (index) {
+        // Determine the color based on the question state
+        Color circleColor;
+        if (index == currentIndex) {
+          circleColor = Colors.blue; // Color for the current question
+        } else if (skippedQuestions.contains(index)) {
+          circleColor = Colors.orange; // Color for skipped questions
+        } else if (answeredQuestions.contains(index)) {
+          circleColor = Colors.green; // Color for answered questions
+        } else {
+          circleColor = Colors.grey[300]!; // Color for unanswered questions
+        }
+
         return Container(
           width: 20,
           height: 20,
           decoration: BoxDecoration(
-            color: index <= currentIndex ? Colors.green : Colors.grey[300],
+            color: circleColor,
             shape: BoxShape.circle,
             border: Border.all(color: Colors.grey.shade600),
           ),
@@ -500,8 +555,6 @@ class QuestionProgressIndicator extends StatelessWidget {
     );
   }
 }
-
-
 
 
 class ResultScreen extends StatefulWidget {
@@ -517,6 +570,8 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
+    final provider = Provider.of<QuizProvider>(context, listen: false);
+    provider.stopTimer();
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 1000),
@@ -668,11 +723,14 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               )
             ],
           ),
-          child: Column(
+          child:
+          Column(
             children: [
               _buildStatRow('Total Questions:', '$totalQuestions'),
               const Divider(),
-              _buildStatRow('Questions attempted:', '${provider.questionsAttempted}'),
+              _buildStatRow('Attempted Questions:', '${provider.attemptedQuestionsCount}'),
+              const Divider(),
+              _buildStatRow('Skipped Questions:', '${provider.skippedQuestionsCount}'),
               const Divider(),
               _buildStatRow('Correct Answers:', '${provider.correctAnswers}'),
               const Divider(),
@@ -681,6 +739,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               _buildStatRow('Total Marks:', '$totalMarks', isBold: true),
             ],
           ),
+
         ),
       ),
     );
@@ -688,7 +747,7 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
 
   Widget _buildStatRow(String label, String value, {bool isBold = false}) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
+      padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
@@ -730,7 +789,10 @@ class _ResultScreenState extends State<ResultScreen> with SingleTickerProviderSt
               color: Colors.blue,
               onPressed: () {
                 provider.reset();
-                Navigator.pop(context);
+                Navigator.push(
+                  navigatorKey.currentContext!,
+                  MaterialPageRoute(builder: (_) => const QuizScreen()),
+                );
               },
             ),
             const SizedBox(width: 20),
