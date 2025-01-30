@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:quizapp/screens/resultscreen.dart';
 
 import 'Model/quiz.dart';
 import 'main.dart';
@@ -95,6 +96,7 @@ class QuizProvider extends ChangeNotifier {
     _timeLeft = 120;
     _attemptedQuestions.clear();
     _skippedQuestions.clear();
+    _answeredQuestions.clear();
     stopTimer();
     notifyListeners();
   }

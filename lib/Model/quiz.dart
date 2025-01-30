@@ -54,6 +54,7 @@ class Option {
     );
   }
 }
+
 class QuizService {
   Future<Quiz> fetchQuiz() async {
     final response = await http.get(Uri.parse('https://api.jsonserve.com/Uw5CrX'));
