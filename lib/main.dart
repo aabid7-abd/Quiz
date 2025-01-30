@@ -3,9 +3,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:quizapp/screens/quizscreen.dart';
-import 'package:quizapp/screens/startscreen.dart';
-import 'package:quizapp/statemanage.dart';
+import 'package:quizapp/screens/quiz_screen.dart';
+import 'package:quizapp/screens/start_screen.dart';
+import 'package:quizapp/state_manage/quiz_provider.dart';
 import 'package:share_plus/share_plus.dart';
 final navigatorKey = GlobalKey<NavigatorState>();
 

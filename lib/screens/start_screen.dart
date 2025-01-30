@@ -1,9 +1,9 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:quizapp/screens/quizscreen.dart';
+import 'package:quizapp/screens/quiz_screen.dart';
 
-import '../statemanage.dart';
+import '../state_manage/quiz_provider.dart';
 
 class StartScreen extends StatefulWidget {
   const StartScreen({super.key});

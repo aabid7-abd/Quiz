@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../main.dart';
-import '../statemanage.dart';
-import 'Erron handling.dart';
+import '../state_manage/quiz_provider.dart';
+import '../widgets/options_button.dart';
+import 'error_handling.dart';
+
 class QuizScreen extends StatefulWidget {
   const QuizScreen({super.key});
 
@@ -35,8 +36,10 @@ class _QuizScreenState extends State<QuizScreen> {
 
     // Handle loading, error, and empty states
     if (provider.isLoading) return const LoadingScreen();
-    if (provider.errorMessage != null) return ErrorScreen(message: provider.errorMessage!);
-    if (provider.quiz == null || provider.quiz!.questions.isEmpty) return const EmptyQuizScreen();
+    if (provider.errorMessage != null)
+      return ErrorScreen(message: provider.errorMessage!);
+    if (provider.quiz == null || provider.quiz!.questions.isEmpty)
+      return const EmptyQuizScreen();
 
     final question = provider.quiz!.questions[provider.currentQuestionIndex];
 
@@ -54,8 +57,7 @@ class _QuizScreenState extends State<QuizScreen> {
             child: Container(
               decoration: const BoxDecoration(
                   color: Colors.blue,
-                  borderRadius: BorderRadius.all(Radius.circular(15))
-              ),
+                  borderRadius: BorderRadius.all(Radius.circular(15))),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Text(
@@ -80,7 +82,8 @@ class _QuizScreenState extends State<QuizScreen> {
               // Progress Indicator
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: List.generate(provider.quiz!.questions.length, (index) {
+                children:
+                    List.generate(provider.quiz!.questions.length, (index) {
                   // Get state from provider
                   final isCurrent = index == provider.currentQuestionIndex;
                   final isAnswered = provider.answeredQuestions.contains(index);
@@ -90,10 +93,10 @@ class _QuizScreenState extends State<QuizScreen> {
                   final Color circleColor = isCurrent
                       ? Colors.blue
                       : isSkipped
-                      ? Colors.orange
-                      : isAnswered
-                      ? Colors.green
-                      : Colors.grey[300]!;
+                          ? Colors.orange
+                          : isAnswered
+                              ? Colors.green
+                              : Colors.grey[300]!;
 
                   return Container(
                     width: 20,
@@ -103,14 +106,15 @@ class _QuizScreenState extends State<QuizScreen> {
                       color: circleColor,
                       shape: BoxShape.circle,
                       border: Border.all(
-                        color: isCurrent ? Colors.blue.shade800 : Colors.grey.shade600,
+                        color: isCurrent
+                            ? Colors.blue.shade800
+                            : Colors.grey.shade600,
                         width: isCurrent ? 2 : 1,
                       ),
                     ),
                   );
                 }),
               ),
-
 
               const SizedBox(height: 32),
 
@@ -173,13 +177,11 @@ class _QuizScreenState extends State<QuizScreen> {
               ),
 
               // Skip Button
-
             ],
           ),
         ),
       ),
       floatingActionButton: SizedBox(
-
         width: 150,
         child: FloatingActionButton(
           backgroundColor: Colors.purple,
@@ -187,75 +189,15 @@ class _QuizScreenState extends State<QuizScreen> {
           child: const Row(
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
-              Icon(Icons.skip_next,color: Colors.white,),
-              Text('Skip Question',style: TextStyle(color: Colors.white,fontWeight: FontWeight.w700),),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-class OptionButton extends StatelessWidget {
-  final String text;
-  final bool isCorrect;
-  final bool isSelected;
-  final VoidCallback onTap;
-
-  const OptionButton({super.key,
-    required this.text,
-    required this.isCorrect,
-    required this.isSelected,
-    required this.onTap,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    Color backgroundColor = theme.cardColor;
-    Color textColor = theme.textTheme.bodyLarge!.color!;
-
-    if (isSelected) {
-      backgroundColor = isCorrect ? Colors.green : Colors.red;
-      textColor = Colors.white;
-    }
-
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
-      child: InkWell(
-        onTap: isSelected ? null : onTap,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 300),
-          decoration: BoxDecoration(
-            color: backgroundColor,
-            borderRadius: BorderRadius.circular(15),
-            boxShadow: [
-              if (!isSelected)
-                BoxShadow(
-                  color: Colors.black.withOpacity(0.1),
-                  blurRadius: 5,
-                  offset: const Offset(0, 2),
-                ),
-            ],
-          ),
-          padding: const EdgeInsets.all(16),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  text,
-                  style: TextStyle(
-                    fontSize: 18,
-                    color: textColor,
-                    fontWeight: FontWeight.w500,
-                  ),
-                ),
+              Icon(
+                Icons.skip_next,
+                color: Colors.white,
               ),
-              if (isSelected)
-                Icon(
-                  isCorrect ? Icons.check_circle : Icons.cancel,
-                  color: Colors.white,
-                ),
+              Text(
+                'Skip Question',
+                style:
+                    TextStyle(color: Colors.white, fontWeight: FontWeight.w700),
+              ),
             ],
           ),
         ),
@@ -263,3 +205,4 @@ class OptionButton extends StatelessWidget {
     );
   }
 }
+

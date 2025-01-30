@@ -1,11 +1,11 @@
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
-import 'package:quizapp/screens/quizscreen.dart';
+import 'package:quizapp/screens/quiz_screen.dart';
 import 'package:share_plus/share_plus.dart';
 
 import '../main.dart';
-import '../statemanage.dart';
+import '../state_manage/quiz_provider.dart';
 class ResultScreen extends StatefulWidget {
   const ResultScreen({super.key});
 

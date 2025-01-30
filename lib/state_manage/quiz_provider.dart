@@ -1,10 +1,10 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
-import 'package:quizapp/screens/resultscreen.dart';
+import 'package:quizapp/screens/result_screen.dart';
 
-import 'Model/quiz.dart';
-import 'main.dart';
+import '../main.dart';
+import '../models/quiz_model.dart';
 
 class QuizProvider extends ChangeNotifier {
   Quiz? _quiz;

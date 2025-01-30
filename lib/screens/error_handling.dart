@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
-import '../statemanage.dart';
+import '../state_manage/quiz_provider.dart';
 
 class LoadingScreen extends StatelessWidget {
   const LoadingScreen({super.key});
