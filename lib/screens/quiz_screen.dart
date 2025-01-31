@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:quizapp/screens/start_screen.dart';
 
+import '../main.dart';
 import '../state_manage/quiz_provider.dart';
 import '../widgets/options_button.dart';
 import 'error_handling.dart';
@@ -45,6 +47,14 @@ class _QuizScreenState extends State<QuizScreen> {
 
     return Scaffold(
       appBar: AppBar(
+        leading: IconButton(
+          onPressed:(){
+            Navigator.push(
+              navigatorKey.currentContext!,
+              MaterialPageRoute(builder: (_) => const StartScreen()),
+            );
+          } , icon: const Icon(Icons.arrow_back_ios_new),
+        ),
         title: Text(
           'Question ${provider.currentQuestionIndex + 1}/${provider.quiz!.questions.length}',
           style: theme.textTheme.titleMedium,
