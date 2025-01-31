@@ -21,7 +21,8 @@ A feature-rich quiz application built with Flutter that offers timed questions, 
 |------------------------------------------------|----------------------------------------------|----------------------------------------------------|
 | ![Start Screen](screenshorts/start_screen.png) | ![Quiz Screen](screenshorts/quiz_screen.png) | ![Results Screen](screenshorts/results_screen.png) |
 
-![App Demo](screenshorts/demo1.gif)
+## Video Walkthrough 📸
+![App Demo](screenshorts/demo2.gif)
 ## Tech Stack 💻
 - **Framework**: Flutter
 - **Language**: Dart
