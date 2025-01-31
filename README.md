@@ -1,16 +1,43 @@
-# quizapp
+# QuizFlutter - Interactive Quiz Application
 
-A new Flutter project.
+[![Flutter](https://img.shields.io/badge/Flutter-%2302569B.svg?logo=Flutter&logoColor=white)](https://flutter.dev)
+[![Dart](https://img.shields.io/badge/Dart-0175C2?logo=dart&logoColor=white)](https://dart.dev)
 
-## Getting Started
+A feature-rich quiz application built with Flutter that offers timed questions, progress tracking, and detailed result analytics.
 
-This project is a starting point for a Flutter application.
+## Features ✨
+- ⏳ Timed quiz sessions with countdown timer
+- 📊 Real-time progress indicator for questions
+- 🏆 Score calculation with +4/-1 marking system
+- 📈 Detailed result breakdown with analytics
+- 🎨 Smooth animations and transitions
+- 📱 Responsive UI for all screen sizes
+- 🔄 State persistence using Provider
+- 🚦 Error handling and loading states
 
-A few resources to get you started if this is your first Flutter project:
+## Screenshots 📸
 
-- [Lab: Write your first Flutter app](https://docs.flutter.dev/get-started/codelab)
-- [Cookbook: Useful Flutter samples](https://docs.flutter.dev/cookbook)
+| Start Screen                                  | Quiz Screen                                 | Results Screen                                    |
+|-----------------------------------------------|---------------------------------------------|---------------------------------------------------|
+| ![Start Screen](screenshots/start_screen.png) | ![Quiz Screen](screenshots/quiz_screen.png) | 
+[Video Walkthrough](https://via.placeholder.com/1920x1080/4a7ec0/ffffff?text=Video+Demo+Here) (Replace with actual video link)
 
-For help getting started with Flutter development, view the
-[online documentation](https://docs.flutter.dev/), which offers tutorials,
-samples, guidance on mobile development, and a full API reference.
+## Tech Stack 💻
+- **Framework**: Flutter
+- **Language**: Dart
+- **State Management**: Provider
+- **Animation**: Built-in Flutter animations
+
+
+## Getting Started 🚀
+
+### Prerequisites
+- Flutter SDK (>=3.0.0)
+- Dart (>=2.17.0)
+- Android Studio/VSCode with Flutter extension
+
+### Installation
+1. Clone the repository:
+```bash
+git clone https://github.com/yourusername/quiz_flutter.git
+cd quiz_flutter
