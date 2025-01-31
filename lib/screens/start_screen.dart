@@ -89,7 +89,7 @@ class _StartScreenState extends State<StartScreen> {
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),
-                // In StartScreen's ElevatedButton
+
                 onPressed: () {
                   final provider = Provider.of<QuizProvider>(context, listen: false);
 
